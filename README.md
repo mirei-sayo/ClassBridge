@@ -80,6 +80,8 @@ Standard apps like Notes and Google Calendar fail students because they are *man
 ---
 
 ## Project Structure
+
+```text
 classbridge/
 ├── client/                 # React frontend
 │   ├── public/             # Static assets
@@ -95,6 +97,7 @@ classbridge/
 │   └── package.json
 ├── .gitignore
 └── README.md
+```
 ---
 
 ## Team
