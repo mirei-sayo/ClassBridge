@@ -1,13 +1,18 @@
 import React, { useState } from 'react';
+import Splash from './components/Splash';
 import Upload from './components/Upload';
 import Processing from './components/Processing';
 import Review from './components/Review';
 import Dashboard from './components/Dashboard';
 
 function App() {
-  const [currentStep, setCurrentStep] = useState('UPLOAD');
+  const [currentStep, setCurrentStep] = useState('SPLASH');
   const [uploadedData, setUploadedData] = useState(null);
   const [extractedTasks, setExtractedTasks] = useState([]);
+
+  const startApp = () => {
+    setCurrentStep('UPLOAD');
+  };
 
   const handleUpload = (data) => {
     setUploadedData(data);
@@ -31,6 +36,10 @@ function App() {
 
   return (
     <div className="min-h-screen w-full bg-[#0f172a] flex items-center justify-center overflow-x-hidden">
+      {currentStep === 'SPLASH' && (
+        <Splash onEnter={startApp} />
+      )}
+
       {currentStep === 'UPLOAD' && (
         <Upload onUpload={handleUpload} />
       )}

@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock } from 'lucide-react';
+import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock, AlertTriangle, ArrowDown, ArrowRight } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const Dashboard = ({ onAddClick }) => {
@@ -84,6 +84,8 @@ const Dashboard = ({ onAddClick }) => {
   );
 
   const pendingTasks = filteredTasks.filter(t => t.status !== 'completed');
+  // Miller's Law: Limit to 7 items max to reduce cognitive load
+  const visiblePendingTasks = pendingTasks.slice(0, 7);
   const completedTasks = filteredTasks.filter(t => t.status === 'completed');
 
   return (
@@ -176,9 +178,11 @@ const Dashboard = ({ onAddClick }) => {
             <div className="space-y-8">
               {pendingTasks.length > 0 && (
                 <div>
-                  <h3 className="text-slate-400 font-bold uppercase tracking-widest text-sm mb-4">Action Required</h3>
+                  <h3 className="text-slate-400 font-bold uppercase tracking-widest text-sm mb-4">
+                    Action Required {pendingTasks.length > 7 && <span className="text-indigo-400 ml-2">(Showing 7 of {pendingTasks.length})</span>}
+                  </h3>
                   <div className="grid grid-cols-1 lg:grid-cols-2 xl:grid-cols-3 gap-6">
-                    {pendingTasks.map((task) => (
+                    {visiblePendingTasks.map((task) => (
                       <TaskCard 
                         key={task.id} 
                         task={task} 
@@ -188,6 +192,14 @@ const Dashboard = ({ onAddClick }) => {
                       />
                     ))}
                   </div>
+                  {pendingTasks.length > 7 && (
+                    <div className="mt-6 flex justify-center">
+                      <button className="flex items-center space-x-2 text-indigo-400 font-bold hover:text-indigo-300 transition-colors">
+                        <span>View All {pendingTasks.length} Pending Tasks</span>
+                        <ArrowRight className="w-4 h-4" />
+                      </button>
+                    </div>
+                  )}
                 </div>
               )}
 
@@ -221,7 +233,10 @@ const TaskCard = ({ task, onToggle, onDelete, getPriorityColor }) => {
   return (
     <div className={`glass group rounded-3xl p-6 transition-all border-b-2 border-transparent hover:border-indigo-500/50 hover:bg-white/10 ${isCompleted ? 'grayscale' : ''}`}>
       <div className="flex justify-between items-center mb-4">
-        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest ${getPriorityColor(task.priority)}`}>
+        <div className={`px-3 py-1 rounded-full text-[10px] font-bold uppercase tracking-widest flex items-center gap-1 ${getPriorityColor(task.priority)}`}>
+          {task.priority === 'High' && <AlertTriangle className="w-3 h-3" />}
+          {task.priority === 'Low' && <ArrowDown className="w-3 h-3" />}
+          {task.priority === 'Medium' && <span className="w-2 h-2 rounded-full bg-current opacity-75"></span>}
           {task.priority || 'Medium'}
         </div>
         <div className="flex space-x-2">
