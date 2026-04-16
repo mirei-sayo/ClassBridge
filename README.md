@@ -8,8 +8,6 @@
 
 ClassBridge automates the messy information-gathering phase of student life. Instead of manually copying deadlines from Messenger group chats, LMS announcements, screenshots, and PDFs, students can upload a screenshot or paste raw text and let the app do the work.
 
-The system simulates an AI extraction process that identifies deadlines, extracts subject names, and organizes tasks into a clean, prioritized dashboard. It features an intuitive upload interface, a processing state, a "Review & Confirm" screen for error prevention, and a main prioritized dashboard.
-
 ### The Problem It Solves
 
 Standard apps like Notes and Google Calendar fail students because they are *manual* tools — they assume you already have complete, organized information. ClassBridge targets the **pre-organization phase**: it finds tasks hidden in scattered messages rather than just storing tasks you already know about.
