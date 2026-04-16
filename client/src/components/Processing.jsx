@@ -1,67 +1,44 @@
 import React, { useEffect, useState } from 'react';
 import { Sparkles, Loader2, BrainCircuit, FileText } from 'lucide-react';
+import { extractTasksFromInput } from '../lib/extractor';
 
 const Processing = ({ data, onComplete }) => {
   const [progress, setProgress] = useState(0);
   const [status, setStatus] = useState("Initializing AI vision engine...");
 
   useEffect(() => {
-    const statuses = [
-      "Scanning document structure...",
-      "Identifying academic entities...",
-      "Extracting course subjects...",
-      "Detecting deadline dates and times...",
-      "Cross-referencing priorities...",
-      "Finalizing extraction..."
-    ];
-
-    let currentStep = 0;
+    let isMounted = true;
     
-    // Simulate smart thinking status updates
-    const statusInterval = setInterval(() => {
-      if (currentStep < statuses.length) {
-        setStatus(statuses[currentStep]);
-        currentStep++;
-      }
-    }, 600);
-
-    const timer = setInterval(() => {
-      setProgress((prev) => {
-        if (prev >= 100) {
-          clearInterval(timer);
-          clearInterval(statusInterval);
-          
-          // Generate simulated extracted tasks based on input
-          const mockExtractedTasks = [
-            { 
-              id: Date.now(), 
-              title: data?.type === 'text' ? 'Extracted Reading Assignment' : 'Exam Submission', 
-              subject: 'IT102', 
-              date: new Date(Date.now() + 86400000 * 3).toISOString().split('T')[0], // 3 days from now
-              time: '11:59 PM', 
-              priority: 'High' 
-            },
-            { 
-              id: Date.now() + 1, 
-              title: 'Chapter Summary', 
-              subject: 'GenEd', 
-              date: new Date(Date.now() + 86400000 * 7).toISOString().split('T')[0], // 7 days from now
-              time: '5:00 PM', 
-              priority: 'Medium' 
-            }
-          ];
-          
-          setTimeout(() => onComplete(mockExtractedTasks), 500);
-          return 100;
+    const processData = async () => {
+      try {
+        // We pass a callback to the extractor to hook into its progress updates
+        const extractedTasks = await extractTasksFromInput(data, (newStatus) => {
+          if (isMounted) {
+            setStatus(newStatus);
+            // Increment progress pseudo-randomly for visual feedback
+            setProgress(prev => Math.min(prev + Math.floor(Math.random() * 15) + 5, 95));
+          }
+        });
+        
+        if (isMounted) {
+          setProgress(100);
+          setStatus("Extraction complete!");
+          // Short delay so the user sees 100%
+          setTimeout(() => onComplete(extractedTasks), 800);
         }
-        // Randomize speed of progress to feel more "real"
-        return prev + Math.floor(Math.random() * 5) + 1;
-      });
-    }, 100);
+      } catch (err) {
+        console.error("Processing failed", err);
+        if (isMounted) {
+          setStatus("Extraction failed. Switching to manual mode.");
+          setTimeout(() => onComplete([]), 1500);
+        }
+      }
+    };
+    
+    processData();
     
     return () => {
-      clearInterval(timer);
-      clearInterval(statusInterval);
+      isMounted = false;
     };
   }, [data, onComplete]);
 
