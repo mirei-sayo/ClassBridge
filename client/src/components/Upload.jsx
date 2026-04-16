@@ -1,8 +1,10 @@
-import React, { useState } from 'react';
+import React, { useState, useRef } from 'react';
 import { Upload as UploadIcon, FileText, Image as ImageIcon, AlertCircle } from 'lucide-react';
 
 const Upload = ({ onUpload }) => {
   const [isDragging, setIsDragging] = useState(false);
+  const [textInput, setTextInput] = useState('');
+  const fileInputRef = useRef(null);
 
   const handleDragOver = (e) => {
     e.preventDefault();
@@ -13,11 +15,32 @@ const Upload = ({ onUpload }) => {
     setIsDragging(false);
   };
 
+  const processFile = (file) => {
+    if (!file) return;
+    // We can simulate parsing here or just pass the file info
+    onUpload({ type: 'file', file, name: file.name });
+  };
+
   const handleDrop = (e) => {
     e.preventDefault();
     setIsDragging(false);
-    // Simulate file drop
-    onUpload();
+    
+    if (e.dataTransfer.files && e.dataTransfer.files.length > 0) {
+      processFile(e.dataTransfer.files[0]);
+    }
+  };
+
+  const handleFileChange = (e) => {
+    if (e.target.files && e.target.files.length > 0) {
+      processFile(e.target.files[0]);
+    }
+  };
+
+  const handleTextSubmit = (e) => {
+    e.preventDefault();
+    if (textInput.trim()) {
+      onUpload({ type: 'text', content: textInput });
+    }
   };
 
   return (
@@ -31,29 +54,49 @@ const Upload = ({ onUpload }) => {
         onDragOver={handleDragOver}
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
-        className={`w-full aspect-video glass rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 border-2 border-dashed ${
-          isDragging ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/10'
+        className={`w-full aspect-video glass rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 border-2 border-dashed relative overflow-hidden ${
+          isDragging ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/10 hover:border-white/30'
         }`}
-        onClick={onUpload}
+        onClick={() => fileInputRef.current.click()}
       >
-        <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20">
+        <input 
+          type="file" 
+          ref={fileInputRef} 
+          className="hidden" 
+          accept="image/*,.pdf,.txt" 
+          onChange={handleFileChange} 
+        />
+        <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20 pointer-events-none">
           <UploadIcon className="w-10 h-10 text-indigo-400" />
         </div>
-        <p className="text-xl font-medium text-white mb-2">Drop announcement screenshots here</p>
-        <p className="text-slate-500">or click to browse from your device</p>
+        <p className="text-xl font-medium text-white mb-2 pointer-events-none">Drop announcement screenshots here</p>
+        <p className="text-slate-500 pointer-events-none">or click to browse from your device</p>
       </div>
 
-      <div className="grid grid-cols-2 gap-4 w-full mt-8">
-        <div className="glass p-4 rounded-2xl flex items-center space-x-3 text-sm text-slate-300">
-          <ImageIcon className="w-5 h-5 text-indigo-400" />
-          <span>Upload Messenger Screenshots</span>
+      <div className="w-full mt-6">
+        <div className="flex items-center my-4">
+          <div className="flex-grow border-t border-white/10"></div>
+          <span className="mx-4 text-xs font-bold text-slate-500 uppercase tracking-widest">OR PASTE TEXT</span>
+          <div className="flex-grow border-t border-white/10"></div>
         </div>
-        <div className="glass p-4 rounded-2xl flex items-center space-x-3 text-sm text-slate-300">
-          <FileText className="w-5 h-5 text-purple-400" />
-          <span>Paste raw text announcements</span>
-        </div>
+        
+        <form onSubmit={handleTextSubmit} className="relative">
+          <textarea
+            value={textInput}
+            onChange={(e) => setTextInput(e.target.value)}
+            placeholder="Paste raw text announcements from Canvas, Blackboard, or Messenger..."
+            className="w-full glass rounded-2xl p-4 pr-16 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-32"
+          ></textarea>
+          <button 
+            type="submit"
+            disabled={!textInput.trim()}
+            className="absolute bottom-4 right-4 bg-indigo-500 text-white p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-400 transition-colors"
+          >
+            <UploadIcon className="w-5 h-5" />
+          </button>
+        </form>
       </div>
-      
+
       <div className="mt-8 flex items-center space-x-2 text-slate-500 text-sm italic">
         <AlertCircle className="w-4 h-4" />
         <span>ClassBridge uses local processing to keep your academic data private.</span>

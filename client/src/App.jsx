@@ -5,14 +5,17 @@ import Review from './components/Review';
 import Dashboard from './components/Dashboard';
 
 function App() {
-  // States: 'UPLOAD', 'PROCESSING', 'REVIEW', 'DASHBOARD'
   const [currentStep, setCurrentStep] = useState('UPLOAD');
+  const [uploadedData, setUploadedData] = useState(null);
+  const [extractedTasks, setExtractedTasks] = useState([]);
 
-  const startProcessing = () => {
+  const handleUpload = (data) => {
+    setUploadedData(data);
     setCurrentStep('PROCESSING');
   };
 
-  const finishProcessing = () => {
+  const finishProcessing = (tasks) => {
+    setExtractedTasks(tasks);
     setCurrentStep('REVIEW');
   };
 
@@ -22,20 +25,22 @@ function App() {
 
   const resetToUpload = () => {
     setCurrentStep('UPLOAD');
+    setUploadedData(null);
+    setExtractedTasks([]);
   };
 
   return (
     <div className="min-h-screen w-full bg-[#0f172a] flex items-center justify-center overflow-x-hidden">
       {currentStep === 'UPLOAD' && (
-        <Upload onUpload={startProcessing} />
+        <Upload onUpload={handleUpload} />
       )}
       
       {currentStep === 'PROCESSING' && (
-        <Processing onComplete={finishProcessing} />
+        <Processing data={uploadedData} onComplete={finishProcessing} />
       )}
       
       {currentStep === 'REVIEW' && (
-        <Review onConfirm={confirmTasks} />
+        <Review tasks={extractedTasks} onConfirm={confirmTasks} />
       )}
       
       {currentStep === 'DASHBOARD' && (
