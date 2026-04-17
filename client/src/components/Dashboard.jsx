@@ -6,6 +6,7 @@ const Dashboard = ({ onAddClick }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
+  const [showAll, setShowAll] = useState(false);
 
   const fetchTasks = async () => {
     try {
@@ -85,8 +86,8 @@ const Dashboard = ({ onAddClick }) => {
   });
 
   const pendingTasks = filteredTasks.filter(t => t.status !== 'completed');
-  // Miller's Law: Limit to 7 items max to reduce cognitive load
-  const visiblePendingTasks = pendingTasks.slice(0, 7);
+  // Miller's Law: Limit to 7 items max by default to reduce cognitive load
+  const visiblePendingTasks = showAll ? pendingTasks : pendingTasks.slice(0, 7);
   const completedTasks = filteredTasks.filter(t => t.status === 'completed');
 
   return (
@@ -105,22 +106,28 @@ const Dashboard = ({ onAddClick }) => {
             <LayoutDashboard className="w-5 h-5" />
             <span className="font-medium">Dashboard</span>
           </button>
-          <button className="w-full flex items-center space-x-3 p-3 hover:bg-white/5 text-slate-400 rounded-xl transition-all">
-            <Calendar className="w-5 h-5" />
-            <span className="font-medium">Calendar</span>
+          <button title="Coming soon" className="w-full flex items-center justify-between p-3 text-slate-600 rounded-xl cursor-not-allowed">
+            <div className="flex items-center space-x-3">
+              <Calendar className="w-5 h-5" />
+              <span className="font-medium">Calendar</span>
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/5 px-2 py-0.5 rounded-full">Soon</span>
           </button>
-          <button className="w-full flex items-center space-x-3 p-3 hover:bg-white/5 text-slate-400 rounded-xl transition-all">
-            <Bell className="w-5 h-5" />
-            <span className="font-medium">Notifications</span>
+          <button title="Coming soon" className="w-full flex items-center justify-between p-3 text-slate-600 rounded-xl cursor-not-allowed">
+            <div className="flex items-center space-x-3">
+              <Bell className="w-5 h-5" />
+              <span className="font-medium">Notifications</span>
+            </div>
+            <span className="text-[9px] font-bold uppercase tracking-widest text-slate-700 bg-white/5 px-2 py-0.5 rounded-full">Soon</span>
           </button>
         </nav>
 
         <div className="mt-auto pt-6 border-t border-white/5">
           <div className="flex items-center space-x-3 p-3 glass rounded-2xl">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-700 to-amber-500"></div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-700 to-amber-500 flex items-center justify-center text-white font-bold text-sm">S</div>
             <div className="flex flex-col overflow-hidden">
-              <span className="font-bold text-white text-sm">Leighmarie</span>
-              <span className="text-[10px] text-slate-500 uppercase tracking-tighter">Premium Student</span>
+              <span className="font-bold text-white text-sm">Student</span>
+              <span className="text-[10px] text-slate-500 uppercase tracking-tighter">ClassBridge User</span>
             </div>
           </div>
         </div>
@@ -195,9 +202,12 @@ const Dashboard = ({ onAddClick }) => {
                   </div>
                   {pendingTasks.length > 7 && (
                     <div className="mt-6 flex justify-center">
-                      <button className="flex items-center space-x-2 text-red-500 font-bold hover:text-red-400 transition-colors">
-                        <span>View All {pendingTasks.length} Pending Tasks</span>
-                        <ArrowRight className="w-4 h-4" />
+                      <button
+                        onClick={() => setShowAll(prev => !prev)}
+                        className="flex items-center space-x-2 text-red-500 font-bold hover:text-red-400 transition-colors"
+                      >
+                        <span>{showAll ? 'Show Less' : `View All ${pendingTasks.length} Pending Tasks`}</span>
+                        <ArrowRight className={`w-4 h-4 transition-transform ${showAll ? 'rotate-90' : ''}`} />
                       </button>
                     </div>
                   )}
