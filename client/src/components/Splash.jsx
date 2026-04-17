@@ -16,8 +16,8 @@ const Splash = ({ onEnter }) => {
     <div className="flex flex-col items-center justify-center p-8 w-full max-w-2xl mx-auto min-h-screen text-center">
       <div className="mb-8 relative">
         <div className="absolute inset-0 bg-red-700/20 rounded-full animate-ping blur-xl"></div>
-        <div className="relative w-24 h-24 rounded-2xl bg-gradient-to-tr from-red-700 to-amber-600 flex items-center justify-center shadow-2xl shadow-red-700/50">
-          <LayoutDashboard className="w-12 h-12 text-white" />
+        <div className="relative w-32 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-red-700/50">
+          <img src="/logo.png" alt="ClassBridge Logo" className="w-full h-full object-cover" />
         </div>
       </div>
 
