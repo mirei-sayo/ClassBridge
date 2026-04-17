@@ -30,7 +30,9 @@ Standard apps like Notes and Google Calendar fail students because they are *man
 - **Framework:** React.js + Vite
 - **Styling:** Tailwind CSS
 - **Icons:** Lucide React
-- **Deployment:** GitHub Pages or Vercel
+- **Database:** Supabase (PostgreSQL)
+- **Auth:** Supabase Authentication
+- **Deployment:** Vercel
 
 ---
 
@@ -46,8 +48,8 @@ Standard apps like Notes and Google Calendar fail students because they are *man
 
 1. **Clone the repository**
 ```bash
-   git clone https://github.com/yourusername/classbridge.git
-   cd classbridge
+   git clone https://github.com/mirei-sayo/ClassBridge.git
+   cd ClassBridge
 ```
 
 2. **Install Client Dependencies**
@@ -75,7 +77,7 @@ Standard apps like Notes and Google Calendar fail students because they are *man
    node index.js
 ```
 
-5. Open your browser and navigate to `http://localhost:5173`.
+5. After running `npm run dev`, Vite will display a local URL in your terminal (e.g. `http://localhost:5173`). Open that URL in your browser. The port number may vary depending on your machine.
 
 ---
 
