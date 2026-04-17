@@ -106,18 +106,6 @@ const parseTextForTasks = (text) => {
     }
   });
 
-  // If we couldn't parse anything specific but there is text, give one generic task
-  if (tasks.length === 0 && text.trim().length > 0) {
-    tasks.push({
-      id: Date.now(),
-      title: "Task from Announcement",
-      subject: '',
-      date: new Date().toISOString().split('T')[0],
-      time: '11:59 PM',
-      priority: 'Medium'
-    });
-  }
-
   // Remove exact duplicates
   const uniqueTasks = [];
   const titles = new Set();

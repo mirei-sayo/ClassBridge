@@ -64,6 +64,12 @@ function App() {
   };
 
   const finishProcessing = (tasks) => {
+    if (tasks.length === 0) {
+      alert("We couldn't find any actionable academic tasks in this image. Please ensure the screenshot contains keywords like 'quiz', 'deadline', or 'activity' before uploading.");
+      setCurrentStep('UPLOAD');
+      setUploadedData(null);
+      return;
+    }
     setExtractedTasks(tasks);
     setCurrentStep('REVIEW');
   };
