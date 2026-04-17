@@ -163,7 +163,7 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
 
       <div className="mt-6 flex items-center justify-center space-x-2 text-xs text-slate-500">
         <AlertCircle className="w-3 h-3" />
-        <span>HCI Tip: Double-checking prevents errors during AI extraction (Error Prevention Principle)</span>
+        <span>Pro-tip: Double-checking ensures your dashboard stays clean and accurate.</span>
       </div>
     </div>
   );
