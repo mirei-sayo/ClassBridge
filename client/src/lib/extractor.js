@@ -11,13 +11,13 @@ const parseTextForTasks = (text) => {
 
   // 1. Look for common task identifiers to split the text into chunks or identify sentences
   // e.g. "Quiz 1 is on...", "Submit your assignment by..."
-  const taskKeywords = /(quiz|exam|assignment|project|submission|submit|homework|midterm|finals|activity)/gi;
+  const taskKeywords = /(quiz|exam|assignment|project|submission|submit|homework|midterm|finals|activity|module)/gi;
   
-  // 2. Look for subjects: 2-4 uppercase letters, optional space, 2-3 numbers (e.g. CSIT 221, IT101)
-  const subjectRegex = /([A-Z]{2,4}\s?\d{2,3})/g;
+  // 2. Look for subjects: word boundary + 2-5 uppercase letters, optional space, 1-3 numbers
+  const subjectRegex = /\b([A-Z]{2,5}\s?\d{1,3}[A-Z]?)\b/g;
   
-  // 3. Look for dates: Oct 25, October 25th, 10/25/2024, tomorrow, next week
-  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today/gi;
+  // 3. Look for dates: Oct 25, 10/25/2024, tomorrow, next week, days of the week
+  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday/gi;
   
   // 4. Look for times: 11:59 PM, 23:59, 5 PM
   const timeRegex = /(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm))|(\d{1,2}\s?(?:AM|PM|am|pm))/g;
@@ -40,8 +40,8 @@ const parseTextForTasks = (text) => {
       if (keywordMatch) {
         const keyword = keywordMatch[0].toLowerCase();
         
-        if (keyword === 'activity' || keyword === 'submission' || keyword === 'submit') {
-           title = `Pending Activity/Submission`;
+        if (keyword === 'activity' || keyword === 'submission' || keyword === 'submit' || keyword === 'module') {
+           title = `Pending ${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`;
         } else if (keyword === 'exam' || keyword === 'quiz' || keyword === 'midterm' || keyword === 'finals') {
            title = `Upcoming ${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`;
         } else {
@@ -65,6 +65,17 @@ const parseTextForTasks = (text) => {
           formattedDate = nextWk.toISOString().split('T')[0];
         } else if (rawDate.includes('today')) {
           formattedDate = new Date().toISOString().split('T')[0];
+        } else if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].some(d => rawDate.includes(d))) {
+          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+          const targetDay = days.findIndex(d => rawDate.includes(d));
+          if (targetDay !== -1) {
+            const d = new Date();
+            const currentDay = d.getDay();
+            let distance = targetDay - currentDay;
+            if (distance <= 0) distance += 7; // Get next occurrence of that day
+            d.setDate(d.getDate() + distance);
+            formattedDate = d.toISOString().split('T')[0];
+          }
         } else {
           // Attempt to parse standard dates (might need a real date library like date-fns for robustness, but JS Date works for basic stuff)
           // We will append current year if missing just so JS parser doesn't break
