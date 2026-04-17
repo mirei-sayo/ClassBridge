@@ -45,20 +45,20 @@ const Processing = ({ data, onComplete }) => {
   return (
     <div className="flex flex-col items-center justify-center p-8 w-full max-w-2xl mx-auto h-[400px]">
       <div className="relative w-32 h-32 mb-8">
-        <div className="absolute inset-0 bg-indigo-500/20 rounded-full animate-ping"></div>
-        <div className="relative glass w-full h-full rounded-full flex flex-col items-center justify-center border-indigo-500/50 overflow-hidden">
+        <div className="absolute inset-0 bg-red-700/20 rounded-full animate-ping"></div>
+        <div className="relative glass w-full h-full rounded-full flex flex-col items-center justify-center border-red-700/50 overflow-hidden">
           {data?.type === 'text' ? (
-            <FileText className="w-12 h-12 text-indigo-400 animate-pulse mb-2" />
+            <FileText className="w-12 h-12 text-red-500 animate-pulse mb-2" />
           ) : (
-            <BrainCircuit className="w-12 h-12 text-indigo-400 animate-pulse mb-2" />
+            <BrainCircuit className="w-12 h-12 text-red-500 animate-pulse mb-2" />
           )}
-          <div className="w-full h-1 bg-indigo-500/30 absolute top-0 animate-[scan_2s_ease-in-out_infinite]"></div>
+          <div className="w-full h-1 bg-red-700/30 absolute top-0 animate-[scan_2s_ease-in-out_infinite]"></div>
         </div>
       </div>
 
       <div className="text-center mb-8">
         <h2 className="text-2xl font-bold text-white mb-2 flex items-center justify-center gap-2">
-          <Sparkles className="w-6 h-6 text-purple-400" />
+          <Sparkles className="w-6 h-6 text-amber-500" />
           AI is analyzing your content
         </h2>
         <p className="text-slate-400 min-h-[24px]">{status}</p>
@@ -66,12 +66,12 @@ const Processing = ({ data, onComplete }) => {
 
       <div className="w-full h-2 bg-slate-800 rounded-full overflow-hidden mb-4">
         <div 
-          className="h-full bg-gradient-to-r from-indigo-500 to-purple-500 transition-all duration-100 ease-out"
+          className="h-full bg-gradient-to-r from-red-700 to-amber-500 transition-all duration-100 ease-out"
           style={{ width: `${progress}%` }}
         ></div>
       </div>
       
-      <div className="flex items-center space-x-2 text-indigo-400 text-sm font-mono">
+      <div className="flex items-center space-x-2 text-red-500 text-sm font-mono">
         <Loader2 className="w-4 h-4 animate-spin" />
         <span>{Math.min(progress, 100)}% Extracted</span>
       </div>

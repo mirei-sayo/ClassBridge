@@ -63,7 +63,7 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
   return (
     <div className="flex flex-col w-full max-w-2xl mx-auto p-4 md:p-8">
       <div className="mb-8">
-        <h2 className="text-3xl font-bold text-white mb-2 underline decoration-indigo-500">Review & Confirm</h2>
+        <h2 className="text-3xl font-bold text-white mb-2 underline decoration-red-700">Review & Confirm</h2>
         <p className="text-slate-400">We've extracted these tasks. Tap to edit or confirm to add to your dashboard.</p>
       </div>
 
@@ -74,7 +74,7 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
           </div>
         ) : (
           tasks.map((task) => (
-            <div key={task.id} className="glass p-6 rounded-2xl border-l-4 border-indigo-500 hover:border-purple-500 transition-colors relative group">
+            <div key={task.id} className="glass p-6 rounded-2xl border-l-4 border-red-700 hover:border-amber-500 transition-colors relative group">
               <button 
                 onClick={() => handleDeleteTask(task.id)}
                 className="absolute top-4 right-4 text-slate-500 hover:text-red-400 opacity-0 group-hover:opacity-100 transition-opacity"
@@ -86,7 +86,7 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
                 <input 
                   value={task.title}
                   onChange={(e) => handleUpdateTask(task.id, 'title', e.target.value)}
-                  className="bg-transparent text-xl font-bold text-white focus:outline-none focus:ring-1 focus:ring-indigo-500/50 rounded px-1 transition-all w-full"
+                  className="bg-transparent text-xl font-bold text-white focus:outline-none focus:ring-1 focus:ring-red-700/50 rounded px-1 transition-all w-full"
                   placeholder="Task Title"
                 />
               </div>
@@ -151,7 +151,7 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
         <button 
           onClick={saveToSupabase}
           disabled={isSaving}
-          className="flex-2 bg-gradient-to-r from-indigo-600 to-purple-600 hover:from-indigo-500 hover:to-purple-500 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-indigo-500/25 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
+          className="flex-2 bg-gradient-to-r from-red-700 to-amber-600 hover:from-red-600 hover:to-amber-500 text-white font-bold py-4 px-8 rounded-2xl flex items-center justify-center space-x-2 shadow-lg shadow-red-700/25 transition-all transform hover:scale-[1.01] active:scale-[0.99] disabled:opacity-50"
         >
           {isSaving ? (
             <span className="flex items-center gap-2"><Loader2 className="w-6 h-6 animate-spin" /> Saving to Database...</span>

@@ -35,7 +35,7 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0f172a] flex items-center justify-center overflow-x-hidden">
+    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center overflow-x-hidden text-slate-200">
       {currentStep === 'SPLASH' && (
         <Splash onEnter={startApp} />
       )}

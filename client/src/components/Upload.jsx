@@ -55,7 +55,7 @@ const Upload = ({ onUpload }) => {
         onDragLeave={handleDragLeave}
         onDrop={handleDrop}
         className={`w-full aspect-video glass rounded-3xl flex flex-col items-center justify-center cursor-pointer transition-all duration-300 border-2 border-dashed relative overflow-hidden ${
-          isDragging ? 'border-indigo-500 bg-indigo-500/10 scale-[1.02]' : 'border-white/10 hover:border-white/30'
+          isDragging ? 'border-red-700 bg-red-700/10 scale-[1.02]' : 'border-white/10 hover:border-white/30'
         }`}
         onClick={() => fileInputRef.current.click()}
       >
@@ -66,11 +66,22 @@ const Upload = ({ onUpload }) => {
           accept="image/*,.pdf,.txt" 
           onChange={handleFileChange} 
         />
-        <div className="w-20 h-20 rounded-full bg-indigo-500/20 flex items-center justify-center mb-6 shadow-lg shadow-indigo-500/20 pointer-events-none">
-          <UploadIcon className="w-10 h-10 text-indigo-400" />
+        <div className="w-20 h-20 rounded-full bg-red-700/20 flex items-center justify-center mb-6 shadow-lg shadow-red-700/20 pointer-events-none">
+          <UploadIcon className="w-10 h-10 text-red-500" />
         </div>
         <p className="text-xl font-medium text-white mb-2 pointer-events-none">Drop announcement screenshots here</p>
         <p className="text-slate-500 pointer-events-none">or click to browse from your device</p>
+      </div>
+
+      <div className="grid grid-cols-2 gap-4 w-full mt-8">
+        <div className="glass p-4 rounded-2xl flex items-center space-x-3 text-sm text-slate-300">
+          <ImageIcon className="w-5 h-5 text-red-500" />
+          <span>Upload Messenger Screenshots</span>
+        </div>
+        <div className="glass p-4 rounded-2xl flex items-center space-x-3 text-sm text-slate-300">
+          <FileText className="w-5 h-5 text-amber-500" />
+          <span>Paste raw text announcements</span>
+        </div>
       </div>
 
       <div className="w-full mt-6">
@@ -85,12 +96,12 @@ const Upload = ({ onUpload }) => {
             value={textInput}
             onChange={(e) => setTextInput(e.target.value)}
             placeholder="Paste raw text announcements from Canvas, Blackboard, or Messenger..."
-            className="w-full glass rounded-2xl p-4 pr-16 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-indigo-500 resize-none h-32"
+            className="w-full glass rounded-2xl p-4 pr-16 text-slate-200 placeholder:text-slate-600 focus:outline-none focus:ring-2 focus:ring-red-700 resize-none h-32"
           ></textarea>
           <button 
             type="submit"
             disabled={!textInput.trim()}
-            className="absolute bottom-4 right-4 bg-indigo-500 text-white p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-indigo-400 transition-colors"
+            className="absolute bottom-4 right-4 bg-red-700 text-white p-2 rounded-xl disabled:opacity-50 disabled:cursor-not-allowed hover:bg-red-600 transition-colors"
           >
             <UploadIcon className="w-5 h-5" />
           </button>
