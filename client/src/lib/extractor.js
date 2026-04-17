@@ -11,13 +11,13 @@ const parseTextForTasks = (text) => {
 
   // 1. Look for common task identifiers to split the text into chunks or identify sentences
   // e.g. "Quiz 1 is on...", "Submit your assignment by..."
-  const taskKeywords = /(quiz|exam|assignment|project|submission|homework|midterm|finals)/gi;
+  const taskKeywords = /(quiz|exam|assignment|project|submission|submit|homework|midterm|finals|activity)/gi;
   
   // 2. Look for subjects: 2-4 uppercase letters, optional space, 2-3 numbers (e.g. CSIT 221, IT101)
   const subjectRegex = /([A-Z]{2,4}\s?\d{2,3})/g;
   
-  // 3. Look for dates: Oct 25, October 25th, 10/25/2024, tomorrow
-  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow/gi;
+  // 3. Look for dates: Oct 25, October 25th, 10/25/2024, tomorrow, next week
+  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today/gi;
   
   // 4. Look for times: 11:59 PM, 23:59, 5 PM
   const timeRegex = /(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm))|(\d{1,2}\s?(?:AM|PM|am|pm))/g;
@@ -35,11 +35,18 @@ const parseTextForTasks = (text) => {
       const subjectMatch = sentence.match(subjectRegex) || text.match(subjectRegex);
       const timeMatch = sentence.match(timeRegex);
 
-      // Guess the title
+      // Guess the title intelligently
       let title = "Extracted Task";
       if (keywordMatch) {
-        title = sentence.substring(0, 30).split('.')[0]; // keep it short
-        if (title.length < 5) title = `${keywordMatch[0]} Task`;
+        const keyword = keywordMatch[0].toLowerCase();
+        
+        if (keyword === 'activity' || keyword === 'submission' || keyword === 'submit') {
+           title = `Pending Activity/Submission`;
+        } else if (keyword === 'exam' || keyword === 'quiz' || keyword === 'midterm' || keyword === 'finals') {
+           title = `Upcoming ${keyword.charAt(0).toUpperCase() + keyword.slice(1)}`;
+        } else {
+           title = `${keyword.charAt(0).toUpperCase() + keyword.slice(1)} Task`;
+        }
       } else if (dateMatch) {
         title = "Scheduled Deadline";
       }
@@ -52,6 +59,12 @@ const parseTextForTasks = (text) => {
           const tmrw = new Date();
           tmrw.setDate(tmrw.getDate() + 1);
           formattedDate = tmrw.toISOString().split('T')[0];
+        } else if (rawDate.includes('next week')) {
+          const nextWk = new Date();
+          nextWk.setDate(nextWk.getDate() + 7);
+          formattedDate = nextWk.toISOString().split('T')[0];
+        } else if (rawDate.includes('today')) {
+          formattedDate = new Date().toISOString().split('T')[0];
         } else {
           // Attempt to parse standard dates (might need a real date library like date-fns for robustness, but JS Date works for basic stuff)
           // We will append current year if missing just so JS parser doesn't break

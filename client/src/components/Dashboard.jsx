@@ -94,7 +94,7 @@ const Dashboard = ({ onAddClick }) => {
       <aside className="w-64 glass border-r border-white/5 p-6 hidden md:flex flex-col">
         <div className="flex items-center space-x-3 mb-10">
           <div className="w-10 h-10 rounded-lg overflow-hidden border border-amber-500/20">
-            <img src="/logo.png" alt="ClassBridge" className="w-full h-full object-cover" />
+            <img src="/ClassBridge-Logo.png" alt="ClassBridge" className="w-full h-full object-cover" />
           </div>
           <span className="text-xl font-bold text-white tracking-tight">ClassBridge</span>
         </div>

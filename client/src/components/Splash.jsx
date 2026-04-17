@@ -17,7 +17,7 @@ const Splash = ({ onEnter }) => {
       <div className="mb-8 relative">
         <div className="absolute inset-0 bg-red-700/20 rounded-full animate-ping blur-xl"></div>
         <div className="relative w-32 h-32 rounded-3xl overflow-hidden shadow-2xl shadow-red-700/50">
-          <img src="/logo.png" alt="ClassBridge Logo" className="w-full h-full object-cover" />
+          <img src="/ClassBridge-Logo.png" alt="ClassBridge Logo" className="w-full h-full object-cover" />
         </div>
       </div>
 
