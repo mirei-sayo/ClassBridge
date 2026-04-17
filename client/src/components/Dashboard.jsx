@@ -78,10 +78,11 @@ const Dashboard = ({ onAddClick }) => {
     return 'bg-emerald-500 text-white';
   };
 
-  const filteredTasks = tasks.filter(task => 
-    task.title.toLowerCase().includes(searchQuery.toLowerCase()) || 
-    (task.subject && task.subject.toLowerCase().includes(searchQuery.toLowerCase()))
-  );
+  const filteredTasks = (tasks || []).filter(task => {
+    const titleMatch = (task?.title || '').toLowerCase().includes(searchQuery.toLowerCase());
+    const subjectMatch = (task?.subject || '').toLowerCase().includes(searchQuery.toLowerCase());
+    return titleMatch || subjectMatch;
+  });
 
   const pendingTasks = filteredTasks.filter(t => t.status !== 'completed');
   // Miller's Law: Limit to 7 items max to reduce cognitive load
@@ -259,7 +260,15 @@ const TaskCard = ({ task, onToggle, onDelete, getPriorityColor }) => {
         <span className="flex items-center gap-1">
           <Clock className="w-3 h-3" />
           <span className={`${isCompleted ? '' : 'text-amber-400 font-bold'}`}>
-            {task.date ? new Date(task.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }) : 'No Date'}
+            {task.date ? (
+              (() => {
+                try {
+                  return new Date(task.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+                } catch {
+                  return task.date;
+                }
+              })()
+            ) : 'No Date'}
             {task.time ? ` at ${task.time}` : ''}
           </span>
         </span>

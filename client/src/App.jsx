@@ -35,7 +35,9 @@ function App() {
   };
 
   return (
-    <div className="min-h-screen w-full bg-[#0a0a0a] flex items-center justify-center overflow-x-hidden text-slate-200">
+    <div className={`min-h-screen w-full bg-[#0a0a0a] text-slate-200 ${
+      currentStep === 'DASHBOARD' ? '' : 'flex items-center justify-center'
+    } overflow-x-hidden`}>
       {currentStep === 'SPLASH' && (
         <Splash onEnter={startApp} />
       )}

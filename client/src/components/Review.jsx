@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { Check, Calendar, BookOpen, Clock, AlertCircle, Edit2, Trash2, Plus } from 'lucide-react';
+import { Check, Calendar, BookOpen, Clock, AlertCircle, Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const Review = ({ tasks: initialTasks, onConfirm }) => {
