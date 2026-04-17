@@ -30,9 +30,9 @@ function App() {
     return () => subscription.unsubscribe();
   }, []);
 
-  // When session changes, check if they are new or returning
+  // When session changes, check if they are new or returning, ONLY on initial load
   useEffect(() => {
-    if (!session) return;
+    if (!session || currentStep !== 'LOADING') return;
 
     const checkExistingTasks = async () => {
       try {
@@ -52,7 +52,7 @@ function App() {
     };
 
     checkExistingTasks();
-  }, [session]);
+  }, [session, currentStep]);
 
   const startApp = () => {
     setCurrentStep('UPLOAD');
