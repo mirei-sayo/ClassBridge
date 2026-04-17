@@ -1,8 +1,8 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock, AlertTriangle, ArrowDown, ArrowRight } from 'lucide-react';
+import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock, AlertTriangle, ArrowDown, ArrowRight, LogOut } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const Dashboard = ({ onAddClick }) => {
+const Dashboard = ({ onAddClick, user }) => {
   const [tasks, setTasks] = useState([]);
   const [loading, setLoading] = useState(true);
   const [searchQuery, setSearchQuery] = useState('');
@@ -14,6 +14,7 @@ const Dashboard = ({ onAddClick }) => {
       const { data, error } = await supabase
         .from('tasks')
         .select('*')
+        .eq('user_id', user.id)
         .order('date', { ascending: true });
         
       if (error) throw error;
@@ -122,14 +123,23 @@ const Dashboard = ({ onAddClick }) => {
           </button>
         </nav>
 
-        <div className="mt-auto pt-6 border-t border-white/5">
+        <div className="mt-auto pt-6 border-t border-white/5 space-y-4">
           <div className="flex items-center space-x-3 p-3 glass rounded-2xl">
-            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-700 to-amber-500 flex items-center justify-center text-white font-bold text-sm">S</div>
+            <div className="w-10 h-10 rounded-full bg-gradient-to-tr from-red-700 to-amber-500 flex items-center justify-center text-white font-bold text-sm">
+              {user?.email?.charAt(0).toUpperCase() || 'S'}
+            </div>
             <div className="flex flex-col overflow-hidden">
-              <span className="font-bold text-white text-sm">Student</span>
+              <span className="font-bold text-white text-sm truncate">{user?.email || 'Student'}</span>
               <span className="text-[10px] text-slate-500 uppercase tracking-tighter">ClassBridge User</span>
             </div>
           </div>
+          <button 
+            onClick={() => supabase.auth.signOut()}
+            className="w-full flex items-center space-x-3 p-3 text-red-500 hover:bg-red-500/10 rounded-xl transition-all"
+          >
+            <LogOut className="w-5 h-5" />
+            <span className="font-medium">Sign Out</span>
+          </button>
         </div>
       </aside>
 
@@ -159,7 +169,7 @@ const Dashboard = ({ onAddClick }) => {
             <div>
               <h1 className="text-4xl font-bold text-white mb-2">Academic Dashboard <span className="text-amber-500">— Action Required</span></h1>
               <p className="text-slate-400">
-                {loading ? 'Loading your tasks...' : `Welcome back, Leighmarie. You have ${pendingTasks.length} pending task(s).`}
+                {loading ? 'Loading your tasks...' : `Welcome back${user ? `, ${user.email.split('@')[0]}` : ''}. You have ${pendingTasks.length} pending task(s).`}
               </p>
             </div>
           </div>

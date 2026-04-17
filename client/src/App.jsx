@@ -4,36 +4,55 @@ import Upload from './components/Upload';
 import Processing from './components/Processing';
 import Review from './components/Review';
 import Dashboard from './components/Dashboard';
+import Login from './components/Login';
 import { supabase } from './lib/supabaseClient';
 
 function App() {
+  const [session, setSession] = useState(null);
   const [currentStep, setCurrentStep] = useState('LOADING');
   const [uploadedData, setUploadedData] = useState(null);
   const [extractedTasks, setExtractedTasks] = useState([]);
 
-  // On app load, check if the student already has tasks saved
   useEffect(() => {
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      setSession(session);
+    });
+
+    const {
+      data: { subscription },
+    } = supabase.auth.onAuthStateChange((_event, session) => {
+      setSession(session);
+      if (!session) {
+         setCurrentStep('LOADING'); // Reset when logged out
+      }
+    });
+
+    return () => subscription.unsubscribe();
+  }, []);
+
+  // When session changes, check if they are new or returning
+  useEffect(() => {
+    if (!session) return;
+
     const checkExistingTasks = async () => {
       try {
         const { count, error } = await supabase
           .from('tasks')
-          .select('*', { count: 'exact', head: true });
+          .select('*', { count: 'exact', head: true })
+          .eq('user_id', session.user.id);
 
         if (!error && count > 0) {
-          // Returning user — go straight to Dashboard
           setCurrentStep('DASHBOARD');
         } else {
-          // First-time user — show the onboarding splash
           setCurrentStep('SPLASH');
         }
       } catch {
-        // If Supabase is unreachable, default to splash
         setCurrentStep('SPLASH');
       }
     };
 
     checkExistingTasks();
-  }, []);
+  }, [session]);
 
   const startApp = () => {
     setCurrentStep('UPLOAD');
@@ -59,6 +78,10 @@ function App() {
     setExtractedTasks([]);
   };
 
+  if (!session) {
+    return <Login />;
+  }
+
   return (
     <div className={`min-h-screen w-full bg-[#0a0a0a] text-slate-200 ${
       currentStep === 'DASHBOARD' ? '' : 'flex items-center justify-center'
@@ -83,11 +106,11 @@ function App() {
       )}
       
       {currentStep === 'REVIEW' && (
-        <Review tasks={extractedTasks} onConfirm={confirmTasks} />
+        <Review tasks={extractedTasks} onConfirm={confirmTasks} user={session.user} />
       )}
       
       {currentStep === 'DASHBOARD' && (
-        <Dashboard onAddClick={resetToUpload} />
+        <Dashboard onAddClick={resetToUpload} user={session.user} />
       )}
     </div>
   );

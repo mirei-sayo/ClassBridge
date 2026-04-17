@@ -2,7 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Check, Calendar, BookOpen, Clock, AlertCircle, Edit2, Trash2, Plus, Loader2 } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
-const Review = ({ tasks: initialTasks, onConfirm }) => {
+const Review = ({ tasks: initialTasks, onConfirm, user }) => {
   const [tasks, setTasks] = useState([]);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -40,7 +40,10 @@ const Review = ({ tasks: initialTasks, onConfirm }) => {
       // Clean up local IDs before storing in Supabase (which auto-generates UUIDs)
       const tasksToInsert = tasks.map(t => {
         const { id, ...taskData } = t;
-        return taskData;
+        return {
+          ...taskData,
+          user_id: user.id
+        };
       });
 
       const { error } = await supabase
