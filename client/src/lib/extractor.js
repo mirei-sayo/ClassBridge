@@ -13,27 +13,93 @@ const parseTextForTasks = (text) => {
   // e.g. "Quiz 1 is on...", "Submit your assignment by..."
   const taskKeywords = /(quiz|exam|assignment|project|submission|submit|homework|midterm|finals|activity|module)/gi;
   
-  // 2. Look for subjects: word boundary + 2-5 uppercase letters, optional space, 1-3 numbers
-  const subjectRegex = /\b([A-Z]{2,5}\s?\d{1,3}[A-Z]?)\b/g;
+  // Make sure to not capture months or common non-subject words as subjects
+  const invalidSubjectWords = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|TODAY|TOMORROW|EXAM|EXAMS|QUIZ|TASK|TEST|PRELIM|MIDTERM|FINALS|THE|AND|FOR|WITH|THIS";
+  const subjectRegex = new RegExp(`\\b(?!(?:${invalidSubjectWords})\\b)([A-Z]{2,6}(?:\\s?\\d{1,4}[A-Z]?)?)\\b`, 'gi');
   
-  // 3. Look for dates: Oct 25, 10/25/2024, tomorrow, next week, days of the week
-  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday/gi;
+  // 2. Look for subjects: word boundary + 2-5 uppercase letters, optional space, 1-3 numbers
+  // This is now replaced by the constructed subjectRegex above
+  
+  // 3. Look for dates: Oct 25, 10/25/2024, tomorrow, next week, days of the week, or Month DD, YYYY
+  const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?(,\s?\d{4}|\s\d{4})?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday/gi;
   
   // 4. Look for times: 11:59 PM, 23:59, 5 PM
   const timeRegex = /(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm))|(\d{1,2}\s?(?:AM|PM|am|pm))/g;
 
   // Let's try splitting the text into sentences to isolate tasks
+  // We use newline and punctuation to split
   const sentences = text.split(/(?<=[.!?\n])\s+/);
 
+  let lastSeenDate = new Date().toISOString().split('T')[0]; // Default today
+
   sentences.forEach((sentence, index) => {
-    // If the sentence mentions a task keyword OR a date, it might be a task
+    // If the sentence mentions a task keyword OR a date OR a time, we might have a task
     const keywordMatch = sentence.match(taskKeywords);
     const dateMatch = sentence.match(dateRegex);
+    const timeMatch = sentence.match(timeRegex);
     
-    if (keywordMatch || dateMatch) {
+    // Update lastSeenDate if a date is found in this sentence
+    if (dateMatch) {
+      const rawDate = dateMatch[0].toLowerCase();
+      if (rawDate.includes('tomorrow')) {
+        const tmrw = new Date();
+        tmrw.setDate(tmrw.getDate() + 1);
+        lastSeenDate = tmrw.toISOString().split('T')[0];
+      } else if (rawDate.includes('next week')) {
+        const nextWk = new Date();
+        nextWk.setDate(nextWk.getDate() + 7);
+        lastSeenDate = nextWk.toISOString().split('T')[0];
+      } else if (rawDate.includes('today')) {
+        lastSeenDate = new Date().toISOString().split('T')[0];
+      } else if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].some(d => rawDate.includes(d))) {
+        const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
+        const targetDay = days.findIndex(d => rawDate.includes(d));
+        if (targetDay !== -1) {
+          const d = new Date();
+          const currentDay = d.getDay();
+          let distance = targetDay - currentDay;
+          if (distance <= 0) distance += 7; 
+          d.setDate(d.getDate() + distance);
+          lastSeenDate = d.toISOString().split('T')[0];
+        }
+      } else {
+        // Handle explicit dates. Remove potential trailing time/extra strings, append year if missing.
+        let dateStrForParse = dateMatch[0];
+        if (!/\d{4}/.test(dateStrForParse)) {
+            dateStrForParse += `, ${new Date().getFullYear()}`;
+        }
+        const parsed = new Date(dateStrForParse);
+        if (!isNaN(parsed.getTime())) {
+          lastSeenDate = parsed.toISOString().split('T')[0];
+        }
+      }
+    }
+
+    if (keywordMatch || timeMatch || (dateMatch && sentence.trim().length > dateMatch[0].length)) {
       // Find subject specifically in this sentence, or fallback to looking in the whole text
-      const subjectMatch = sentence.match(subjectRegex) || text.match(subjectRegex);
-      const timeMatch = sentence.match(timeRegex);
+      let subjectCandidate = null;
+      let sMatch = subjectRegex.exec(sentence);
+      if (sMatch) subjectCandidate = sMatch[0];
+      else {
+         // Reset lastIndex for global regex
+         subjectRegex.lastIndex = 0;
+         sMatch = subjectRegex.exec(text);
+         if (sMatch) subjectCandidate = sMatch[0];
+      }
+      
+      // Reset regex state since we use 'g'
+      subjectRegex.lastIndex = 0;
+
+      // Extract subject using a fallback if purely using regex fails:
+      // If there's a time on the line, assume preceding alphanumeric characters could refer to the subject.
+      let finalSubject = subjectCandidate ? subjectCandidate.toUpperCase() : '';
+      if (!finalSubject && timeMatch) {
+          const textBeforeTime = sentence.split(timeMatch[0])[0].trim();
+          let cleaned = textBeforeTime.replace(dateRegex, '').replace(taskKeywords, '').replace(/[^\w\s()-]/g, '').trim();
+          if (cleaned.length > 0 && cleaned.length < 20) {
+             finalSubject = cleaned;
+          }
+      }
 
       // Guess the title intelligently
       let title = "Extracted Task";
@@ -47,44 +113,21 @@ const parseTextForTasks = (text) => {
         } else {
            title = `${keyword.charAt(0).toUpperCase() + keyword.slice(1)} Task`;
         }
-      } else if (dateMatch) {
+      } else if (dateMatch && !timeMatch && !finalSubject) {
+        // Just a date line, maybe skip or just use as context. 
+        // We updated lastSeenDate, so we can possibly skip creating an empty task here.
+        return;
+      } else {
         title = "Scheduled Deadline";
       }
 
-      // Format date for the input field (YYYY-MM-DD)
-      let formattedDate = new Date().toISOString().split('T')[0]; // Default today
+      // Use the accumulated lastSeenDate
+      let formattedDate = lastSeenDate;
       if (dateMatch) {
         const rawDate = dateMatch[0].toLowerCase();
         if (rawDate.includes('tomorrow')) {
           const tmrw = new Date();
-          tmrw.setDate(tmrw.getDate() + 1);
-          formattedDate = tmrw.toISOString().split('T')[0];
-        } else if (rawDate.includes('next week')) {
-          const nextWk = new Date();
-          nextWk.setDate(nextWk.getDate() + 7);
-          formattedDate = nextWk.toISOString().split('T')[0];
-        } else if (rawDate.includes('today')) {
-          formattedDate = new Date().toISOString().split('T')[0];
-        } else if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].some(d => rawDate.includes(d))) {
-          const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
-          const targetDay = days.findIndex(d => rawDate.includes(d));
-          if (targetDay !== -1) {
-            const d = new Date();
-            const currentDay = d.getDay();
-            let distance = targetDay - currentDay;
-            if (distance <= 0) distance += 7; // Get next occurrence of that day
-            d.setDate(d.getDate() + distance);
-            formattedDate = d.toISOString().split('T')[0];
-          }
-        } else {
-          // Attempt to parse standard dates (might need a real date library like date-fns for robustness, but JS Date works for basic stuff)
-          // We will append current year if missing just so JS parser doesn't break
-          const parsed = new Date(rawDate + `, ${new Date().getFullYear()}`);
-          if (!isNaN(parsed.getTime())) {
-            formattedDate = parsed.toISOString().split('T')[0];
-          }
-        }
-      }
+      // Date assignment block removed as it's now handled globally at the start of sentence loop
 
       // Guess Priority based on keyword
       let priority = 'Medium';
@@ -97,8 +140,10 @@ const parseTextForTasks = (text) => {
 
       tasks.push({
         id: Date.now() + Math.random(),
+      tasks.push({
+        id: Date.now() + Math.random(),
         title: title.trim(),
-        subject: subjectMatch ? subjectMatch[0].toUpperCase() : '',
+        subject: finalSubject,
         date: formattedDate,
         time: timeMatch ? timeMatch[0].toUpperCase() : '11:59 PM', // Default to EOD
         priority: priority
@@ -106,12 +151,13 @@ const parseTextForTasks = (text) => {
     }
   });
 
-  // Remove exact duplicates
+  // Remove exact duplicates instead of title-only duplicates
   const uniqueTasks = [];
-  const titles = new Set();
+  const signatures = new Set();
   for (const t of tasks) {
-    if (!titles.has(t.title)) {
-      titles.add(t.title);
+    const sig = `${t.title}-${t.subject}-${t.date}-${t.time}`;
+    if (!signatures.has(sig)) {
+      signatures.add(sig);
       uniqueTasks.push(t);
     }
   }
