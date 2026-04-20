@@ -123,11 +123,6 @@ const parseTextForTasks = (text) => {
 
       // Use the accumulated lastSeenDate
       let formattedDate = lastSeenDate;
-      if (dateMatch) {
-        const rawDate = dateMatch[0].toLowerCase();
-        if (rawDate.includes('tomorrow')) {
-          const tmrw = new Date();
-      // Date assignment block removed as it's now handled globally at the start of sentence loop
 
       // Guess Priority based on keyword
       let priority = 'Medium';
@@ -138,8 +133,6 @@ const parseTextForTasks = (text) => {
         priority = 'Low';
       }
 
-      tasks.push({
-        id: Date.now() + Math.random(),
       tasks.push({
         id: Date.now() + Math.random(),
         title: title.trim(),
