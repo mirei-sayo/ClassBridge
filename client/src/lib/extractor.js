@@ -1,5 +1,12 @@
 import Tesseract from 'tesseract.js';
 
+const toLocalISOString = (date) => {
+  const year = date.getFullYear();
+  const month = String(date.getMonth() + 1).padStart(2, '0');
+  const day = String(date.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+};
+
 /**
  * Extracts academic tasks from raw text using regex heuristics.
  */
@@ -15,7 +22,7 @@ const parseTextForTasks = (text) => {
   
   // Make sure to not capture months or common non-subject words as subjects
   const invalidSubjectWords = "JAN|FEB|MAR|APR|MAY|JUN|JUL|AUG|SEP|OCT|NOV|DEC|JANUARY|FEBRUARY|MARCH|APRIL|JUNE|JULY|AUGUST|SEPTEMBER|OCTOBER|NOVEMBER|DECEMBER|MONDAY|TUESDAY|WEDNESDAY|THURSDAY|FRIDAY|SATURDAY|SUNDAY|TODAY|TOMORROW|EXAM|EXAMS|QUIZ|TASK|TEST|PRELIM|MIDTERM|FINALS|THE|AND|FOR|WITH|THIS";
-  const subjectRegex = new RegExp(`\\b(?!(?:${invalidSubjectWords})\\b)([A-Z]{2,6}(?:\\s?\\d{1,4}[A-Z]?)?)\\b`, 'gi');
+  const subjectRegex = new RegExp(`\\b(?!(?:${invalidSubjectWords})\\b)([A-Z]{2,6}(?:\\s?\\d{1,4}[A-Z]?(?!\\s*:))?)\\b`, 'gi');
   
   // 2. Look for subjects: word boundary + 2-5 uppercase letters, optional space, 1-3 numbers
   // This is now replaced by the constructed subjectRegex above
@@ -24,13 +31,13 @@ const parseTextForTasks = (text) => {
   const dateRegex = /(Jan|Feb|Mar|Apr|May|Jun|Jul|Aug|Sep|Oct|Nov|Dec)[a-z]*\s\d{1,2}(st|nd|rd|th)?(,\s?\d{4}|\s\d{4})?|\d{1,2}\/\d{1,2}(\/\d{2,4})?|tomorrow|next week|today|monday|tuesday|wednesday|thursday|friday|saturday|sunday/gi;
   
   // 4. Look for times: 11:59 PM, 23:59, 5 PM
-  const timeRegex = /(\d{1,2}:\d{2}\s?(?:AM|PM|am|pm))|(\d{1,2}\s?(?:AM|PM|am|pm))/g;
+  const timeRegex = /(?:\b\d{1,2}:\d{2}(?:\s?[aApP][mM])?\b)|(?:\b\d{1,2}\s?[aApP][mM]\b)/g;
 
   // Let's try splitting the text into sentences to isolate tasks
   // We use newline and punctuation to split
   const sentences = text.split(/(?<=[.!?\n])\s+/);
 
-  let lastSeenDate = new Date().toISOString().split('T')[0]; // Default today
+  let lastSeenDate = toLocalISOString(new Date()); // Default today
 
   sentences.forEach((sentence, index) => {
     // If the sentence mentions a task keyword OR a date OR a time, we might have a task
@@ -44,13 +51,13 @@ const parseTextForTasks = (text) => {
       if (rawDate.includes('tomorrow')) {
         const tmrw = new Date();
         tmrw.setDate(tmrw.getDate() + 1);
-        lastSeenDate = tmrw.toISOString().split('T')[0];
+        lastSeenDate = toLocalISOString(tmrw);
       } else if (rawDate.includes('next week')) {
         const nextWk = new Date();
         nextWk.setDate(nextWk.getDate() + 7);
-        lastSeenDate = nextWk.toISOString().split('T')[0];
+        lastSeenDate = toLocalISOString(nextWk);
       } else if (rawDate.includes('today')) {
-        lastSeenDate = new Date().toISOString().split('T')[0];
+        lastSeenDate = toLocalISOString(new Date());
       } else if (['monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday', 'sunday'].some(d => rawDate.includes(d))) {
         const days = ['sunday', 'monday', 'tuesday', 'wednesday', 'thursday', 'friday', 'saturday'];
         const targetDay = days.findIndex(d => rawDate.includes(d));
@@ -60,7 +67,7 @@ const parseTextForTasks = (text) => {
           let distance = targetDay - currentDay;
           if (distance <= 0) distance += 7; 
           d.setDate(d.getDate() + distance);
-          lastSeenDate = d.toISOString().split('T')[0];
+          lastSeenDate = toLocalISOString(d);
         }
       } else {
         // Handle explicit dates. Remove potential trailing time/extra strings, append year if missing.
@@ -70,7 +77,7 @@ const parseTextForTasks = (text) => {
         }
         const parsed = new Date(dateStrForParse);
         if (!isNaN(parsed.getTime())) {
-          lastSeenDate = parsed.toISOString().split('T')[0];
+          lastSeenDate = toLocalISOString(parsed);
         }
       }
     }
@@ -133,12 +140,23 @@ const parseTextForTasks = (text) => {
         priority = 'Low';
       }
 
+      // Format time intelligently (extract start time instead of end time for ranges)
+      let finalTime = '11:59 PM';
+      if (timeMatch) {
+        finalTime = timeMatch[0].toUpperCase();
+        if (!finalTime.includes('AM') && !finalTime.includes('PM') && timeMatch.length > 1) {
+          const secondTime = timeMatch[1].toUpperCase();
+          if (secondTime.includes('AM')) finalTime += ' AM';
+          else if (secondTime.includes('PM')) finalTime += ' PM';
+        }
+      }
+
       tasks.push({
         id: Date.now() + Math.random(),
         title: title.trim(),
         subject: finalSubject,
         date: formattedDate,
-        time: timeMatch ? timeMatch[0].toUpperCase() : '11:59 PM', // Default to EOD
+        time: finalTime,
         priority: priority
       });
     }

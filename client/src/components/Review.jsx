@@ -18,12 +18,20 @@ const Review = ({ tasks: initialTasks, onConfirm, user }) => {
     setTasks(tasks.filter(t => t.id !== id));
   };
 
+  const getLocalDateString = () => {
+    const d = new Date();
+    const year = d.getFullYear();
+    const month = String(d.getMonth() + 1).padStart(2, '0');
+    const day = String(d.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+  };
+
   const handleAddNewFallbackTask = () => {
     setTasks([...tasks, {
       id: Date.now(),
       title: 'New Manual Task',
       subject: '',
-      date: new Date().toISOString().split('T')[0],
+      date: getLocalDateString(),
       time: '11:59 PM',
       priority: 'Medium'
     }]);
