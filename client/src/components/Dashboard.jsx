@@ -355,14 +355,14 @@ const TaskCard = ({ task, onToggle, onDelete, onUpdate, getPriorityColor }) => {
           {!isCompleted && (
             <button 
               onClick={() => setIsEditing(true)}
-              className="p-2 glass rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+              className="p-2 glass rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors"
             >
               <Edit2 className="w-4 h-4" />
             </button>
           )}
           <button 
             onClick={onDelete}
-            className="p-2 glass rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            className="p-2 glass rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
           >
             <Trash2 className="w-4 h-4" />
           </button>
