@@ -1,5 +1,5 @@
 import React, { useEffect, useState } from 'react';
-import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock, AlertTriangle, ArrowDown, ArrowRight, LogOut } from 'lucide-react';
+import { LayoutDashboard, Calendar, Search, Bell, Menu, Plus, Trash2, CheckCircle, Clock, AlertTriangle, ArrowDown, ArrowRight, LogOut, Edit2, X } from 'lucide-react';
 import { supabase } from '../lib/supabaseClient';
 
 const Dashboard = ({ onAddClick, user }) => {
@@ -71,6 +71,32 @@ const Dashboard = ({ onAddClick, user }) => {
       }
     } catch (err) {
       console.error('Error deleting task:', err);
+    }
+  };
+
+  const handleUpdate = async (id, updatedData) => {
+    const previousTasks = [...tasks];
+    setTasks(tasks.map(t => t.id === id ? { ...t, ...updatedData } : t));
+    
+    try {
+      const { error } = await supabase
+        .from('tasks')
+        .update({
+           title: updatedData.title,
+           subject: updatedData.subject,
+           date: updatedData.date,
+           time: updatedData.time,
+           priority: updatedData.priority
+        })
+        .eq('id', id);
+        
+      if (error) {
+        setTasks(previousTasks);
+        throw error;
+      }
+    } catch (err) {
+      console.error('Error updating task:', err);
+      alert('Failed to update task.');
     }
   };
 
@@ -206,6 +232,7 @@ const Dashboard = ({ onAddClick, user }) => {
                         task={task} 
                         onToggle={() => handleToggleStatus(task.id, task.status)} 
                         onDelete={() => handleDelete(task.id)}
+                        onUpdate={handleUpdate}
                         getPriorityColor={getPriorityColor}
                       />
                     ))}
@@ -234,6 +261,7 @@ const Dashboard = ({ onAddClick, user }) => {
                         task={task} 
                         onToggle={() => handleToggleStatus(task.id, task.status)} 
                         onDelete={() => handleDelete(task.id)}
+                        onUpdate={handleUpdate}
                         getPriorityColor={getPriorityColor}
                       />
                     ))}
@@ -248,9 +276,72 @@ const Dashboard = ({ onAddClick, user }) => {
   );
 };
 
-const TaskCard = ({ task, onToggle, onDelete, getPriorityColor }) => {
+const TaskCard = ({ task, onToggle, onDelete, onUpdate, getPriorityColor }) => {
+  const [isEditing, setIsEditing] = useState(false);
+  const [editedTask, setEditedTask] = useState(task);
   const isCompleted = task.status === 'completed';
-  
+
+  React.useEffect(() => {
+    setEditedTask(task);
+  }, [task]);
+
+  const handleSave = () => {
+    onUpdate(task.id, editedTask);
+    setIsEditing(false);
+  };
+
+  if (isEditing) {
+    return (
+      <div className="glass group rounded-3xl p-6 transition-all border border-amber-500/50 bg-white/5 relative">
+        <div className="mb-4">
+          <input 
+            value={editedTask.title}
+            onChange={(e) => setEditedTask({...editedTask, title: e.target.value})}
+            className="bg-transparent text-xl font-bold text-white focus:outline-none focus:ring-1 focus:ring-amber-500/50 rounded px-2 transition-all w-full mb-4 pb-2 border-b border-white/10"
+            placeholder="Task Title"
+          />
+          <div className="grid grid-cols-2 gap-3 text-sm">
+             <input 
+                value={editedTask.subject}
+                onChange={(e) => setEditedTask({...editedTask, subject: e.target.value})}
+                className="bg-white/5 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                placeholder="Subject"
+             />
+             <select 
+                value={editedTask.priority}
+                onChange={(e) => setEditedTask({...editedTask, priority: e.target.value})}
+                className="bg-slate-800 text-slate-200 rounded-lg p-2.5 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+             >
+               <option value="High">High</option>
+               <option value="Medium">Medium</option>
+               <option value="Low">Low</option>
+             </select>
+             <input 
+                type="date"
+                value={editedTask.date}
+                onChange={(e) => setEditedTask({...editedTask, date: e.target.value})}
+                className="bg-white/5 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50 [color-scheme:dark]"
+             />
+             <input 
+                value={editedTask.time}
+                onChange={(e) => setEditedTask({...editedTask, time: e.target.value})}
+                className="bg-white/5 rounded-lg p-2.5 text-slate-200 focus:outline-none focus:ring-1 focus:ring-amber-500/50"
+                placeholder="Time"
+             />
+          </div>
+        </div>
+        <div className="flex gap-2">
+          <button onClick={handleSave} className="flex-1 bg-amber-500 hover:bg-amber-600 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+            <CheckCircle className="w-4 h-4" /> Save
+          </button>
+          <button onClick={() => { setEditedTask(task); setIsEditing(false); }} className="flex-1 glass hover:bg-white/10 text-white font-bold py-2.5 rounded-xl text-sm transition-colors flex items-center justify-center gap-2">
+            <X className="w-4 h-4" /> Cancel
+          </button>
+        </div>
+      </div>
+    );
+  }
+
   return (
     <div className={`glass group rounded-3xl p-6 transition-all border-b-2 border-transparent hover:border-red-700/50 hover:bg-white/5 ${isCompleted ? 'grayscale' : ''}`}>
       <div className="flex justify-between items-center mb-4">
@@ -260,10 +351,18 @@ const TaskCard = ({ task, onToggle, onDelete, getPriorityColor }) => {
           {task.priority === 'Medium' && <span className="w-2 h-2 rounded-full bg-current opacity-75"></span>}
           {task.priority || 'Medium'}
         </div>
-        <div className="flex space-x-2">
+        <div className="flex space-x-1">
+          {!isCompleted && (
+            <button 
+              onClick={() => setIsEditing(true)}
+              className="p-2 glass rounded-lg text-slate-400 hover:text-amber-400 hover:bg-amber-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
+            >
+              <Edit2 className="w-4 h-4" />
+            </button>
+          )}
           <button 
             onClick={onDelete}
-            className="p-2 glass rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+            className="p-2 glass rounded-lg text-slate-400 hover:text-red-400 hover:bg-red-500/10 transition-colors opacity-0 group-hover:opacity-100 focus:opacity-100"
           >
             <Trash2 className="w-4 h-4" />
           </button>
